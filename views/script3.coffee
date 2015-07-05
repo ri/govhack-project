@@ -13,7 +13,7 @@ graph = (e, data) ->
 
 	console.log dataByDate
 
-	dayIndex = 118
+	dayIndex = 119
 
 	dayData = dataByDate[dayIndex].values.filter((d) -> d["TYPE"] is "general")
 
@@ -27,45 +27,54 @@ graph = (e, data) ->
 	console.log dataLength
 
 	size = 100
-	speed = 200
+	baseSpeed = 1000 #1000 = 30min per sec
+	multiplier = 1
+	speed = baseSpeed * multiplier
 	index = 0
 	elapsed = 0
-	width = 1200
+	width = 1000
 	height = 800
-	bg = "dark"
+	startSunrise = 0
+	startSunset = 12 * 2
+	dateFormat = d3.time.format("%I:%M%p")
+	# console.log indexOfSunrise, indexOfSunset
 
 	dayScale = d3.scale.pow().domain([dayMin, dayMax]).range([0, size/2])
-	posScale = d3.scale.linear().domain([dayMin, dayMax]).range([height - 100, 100])
+	# posScale = d3.scale.linear().domain([dayMin, dayMax]).range([height - 200, 200])
 
 	body = d3.select("body")
 	svg = contain.append("svg")
 		.attr(width: width)
 		.attr(height: height)
+	timeText = contain.append("div").attr(class: "time")
 
 	body.style(background: "#000")
+
 	body.transition()
-		.duration(9000)
+		.duration(speed * startSunset)
 		.style(background: "#454f5a")
+	bg = "light"
 
 	circles = svg.selectAll("circle")
 		.data(dayData)
 		.enter()
 		.append("circle")
-		.attr(cx: () -> (Math.random() * (width - 100)) + 100)
-		.attr(cy: () -> (Math.random() * (height - 100)) + 100)
+		.attr(cx: () -> (Math.random() * (width - size)) + size/2)
+		.attr(cy: () -> (Math.random() * (height - size)) + size/2)
 		.attr(fill: "white")
 		.attr(r: 0)
 
 	interval = setInterval(() ->
+		timeElapsed = index * speed
+		timeText.text(() -> dateFormat(new Date(1,1,1,index/2,index%2 * 30)))
 		if index >= (dataLength - 1) then index = 0
 
-		if index >= dataLength/2 and bg is "dark"
-			console.log "hello!"
-			body.transition().duration(9000).style(background: "#454f5a")
+		if index >= startSunrise and index < startSunset and bg is "dark"
+			body.transition().duration(speed * 24).style(background: "#454f5a")
 			bg = "light"
-		else if index < dataLength/2 and bg is "light"
+		else if index >= startSunset and bg is "light"
 			body.transition()
-				.duration(9000)
+				.duration(speed * 24)
 				.style(background: "#000")
 			bg = "dark"
 
@@ -73,13 +82,9 @@ graph = (e, data) ->
 			.duration(speed)
 			.ease("quad")
 			.attr(r: (d) -> dayScale +d.entries[index].value)
+
 		index++
 	, speed)
-
-
-
-
-		
 
 queue()
 	.defer(d3.csv, 'data/energy-consumption.csv')
