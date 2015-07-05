@@ -40,13 +40,17 @@ graph = (e, data) ->
 	# console.log indexOfSunrise, indexOfSunset
 
 	dayScale = d3.scale.pow().domain([dayMin, dayMax]).range([0, size/2])
+	timeScale = d3.time.scale().range([1, 100])
 	# posScale = d3.scale.linear().domain([dayMin, dayMax]).range([height - 200, 200])
 
 	body = d3.select("body")
 	svg = contain.append("svg")
 		.attr(width: width)
 		.attr(height: height)
+
 	timeText = contain.append("div").attr(class: "time")
+	timeLine = contain.append("div").attr(class: "timeline").append("svg").attr(width: "100%").attr(height: 40)
+
 
 	body.style(background: "#000")
 
